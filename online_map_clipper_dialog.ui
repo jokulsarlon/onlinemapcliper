@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OnlineMapClipperDialog</class>
+ <widget class="QDialog" name="OnlineMapClipperDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Online Map Clipper</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QgsCollapsibleGroupBox" name="groupBox_layers">
+     <property name="title">
+      <string>Layers</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_online">
+        <property name="text">
+         <string>Online map layer:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox_online"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_mask">
+        <property name="text">
+         <string>Mask (vector polygon):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox_mask"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QgsCollapsibleGroupBox" name="groupBox_settings">
+     <property name="title">
+      <string>Settings</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_zoom">
+        <property name="text">
+         <string>Zoom level (0-22):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_zoom">
+        <item>
+         <widget class="QSpinBox" name="spinBox_zoom">
+          <property name="minimum">0</property>
+          <property name="maximum">22</property>
+          <property name="value">15</property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_zoom_from_canvas">
+          <property name="text">
+           <string>From Canvas</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_output">
+        <property name="text">
+         <string>Output file:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QgsFileWidget" name="mQgsFileWidget_output">
+        <property name="storageMode">1</property>
+        <property name="filter">TIFF files (*.tif)</property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QgsCollapsibleGroupBox" name="groupBox_advanced">
+     <property name="title">
+      <string>Advanced</string>
+     </property>
+     <property name="collapsed">true</property>
+     <layout class="QFormLayout" name="formLayout_3">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_tile">
+        <property name="text">
+         <string>Tile size (px):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spinBox_tile_size">
+        <property name="minimum">64</property>
+        <property name="maximum">1024</property>
+        <property name="value">256</property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_dpi">
+        <property name="text">
+         <string>DPI (for scale calc):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinBox_dpi">
+        <property name="minimum">72</property>
+        <property name="maximum">600</property>
+        <property name="value">96</property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QCheckBox" name="checkBox_transparent">
+        <property name="text">
+         <string>Transparent background</string>
+        </property>
+        <property name="checked">true</property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value">0</property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="button_box">
+     <property name="orientation">Qt::Horizontal</property>
+     <property name="standardButtons">Qt::Cancel|Qt::Ok</property>
+     <property name="centerButtons">false</property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>qgscollapsiblegroupbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsMapLayerComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgsmaplayercombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

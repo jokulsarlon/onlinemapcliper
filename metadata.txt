@@ -1,0 +1,16 @@
+[general]
+name=Online Map Clipper
+qgisMinimumVersion=3.22
+description=Clip online basemaps (XYZ/WMS) with a polygon mask or canvas extent at a user-selected tile zoom level. Output to GeoTIFF, PNG, JPEG or Cloud Optimized GeoTIFF (COG).
+version=1.6.2
+author=hexiaosang
+email=sho@live.cn
+about=This plugin renders only the selected online map layer at the exact tile resolution you specify, then clips it using any polygon vector layer or the current map canvas extent. It supports buffer expansion, multiple output formats, automatic layer loading, and a bilingual Chinese/English interface. Ideal for creating custom offline basemaps, extracting satellite imagery for reports, or preparing tiles for mobile GIS applications.
+icon=icon.svg
+tags=python, raster, clip, basemap, zoom level, xyz tiles, wms, offline, tms, satellite, export
+category=Raster
+experimental=False
+deprecated=False
+# Optional but recommended for the QGIS repository:
+homepage=https://github.com/your/repo
+repository=https://github.com/your/repo
