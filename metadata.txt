@@ -12,5 +12,5 @@ category=Raster
 experimental=False
 deprecated=False
 # Optional but recommended for the QGIS repository:
-homepage=https://github.com/your/repo
-repository=https://github.com/your/repo
+homepage=https://github.com/jokulsarlon/onlinemapcliper
+repository=https://github.com/jokulsarlon/onlinemapcliper
