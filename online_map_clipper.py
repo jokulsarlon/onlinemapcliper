@@ -134,7 +134,7 @@ class OnlineMapClipper:
                 QgsCoordinateReferenceSystem('EPSG:4326'),
                 QgsProject.instance()
             ).transform(extent.center()).y()
-            res = self._resolution_from_zoom(zoom, lat_center)
+            res = self._resolution_from_zoom(zoom, lat_center, crs=target_crs)
             w = int(math.ceil(extent.width() / res))
             h = int(math.ceil(extent.height() / res))
             unit = "像素" if self.dlg._locale == 'zh' else "px"
@@ -207,7 +207,7 @@ class OnlineMapClipper:
             QgsCoordinateReferenceSystem('EPSG:4326'),
             QgsProject.instance()
         ).transform(extent.center()).y()
-        res = self._resolution_from_zoom(zoom, lat_center, tile_size)
+        res = self._resolution_from_zoom(zoom, lat_center, tile_size, target_crs)
         width_pix = int(math.ceil(extent.width() / res))
         height_pix = int(math.ceil(extent.height() / res))
         if width_pix == 0 or height_pix == 0:
@@ -228,7 +228,6 @@ class OnlineMapClipper:
             if reply == QMessageBox.No:
                 return
 
-        # 定义后缀映射（提前到此处，确保两个分支都能使用）
         suffix_map = {"GeoTIFF": ".tif", "PNG": ".png", "JPEG": ".jpg", "COG": ".tif"}
 
         if save_to_file:
@@ -247,7 +246,6 @@ class OnlineMapClipper:
             output = QgsProcessingUtils.generateTempFilename(f"clipped{ext}")
             is_temp = True
 
-        # 临时掩膜 shapefile
         temp_mask_path = QgsProcessingUtils.generateTempFilename('mask.shp')
         mask_layer_tmp = QgsVectorLayer("Polygon?crs=" + target_crs.authid(),
                                         "mask_tmp", "memory")
@@ -261,7 +259,6 @@ class OnlineMapClipper:
         if error[0] != QgsVectorFileWriter.NoError:
             raise Exception("Failed to write temporary mask shapefile")
 
-        # 进度对话框
         progress = QProgressDialog(self.translate("Processing..."), self.translate("Cancel"), 0, 100, self.dlg)
         progress.setWindowModality(Qt.WindowModal)
         progress.setMinimumDuration(0)
@@ -276,7 +273,6 @@ class OnlineMapClipper:
 
         cancel = False
 
-        # 渲染缓存
         render_tif = None
         cache_key = (online_layer.id(), extent.toString(), zoom, tile_size, transparent)
         if cache_key in self.render_cache:
@@ -315,7 +311,6 @@ class OnlineMapClipper:
                     os.remove(old_path)
             self.render_cache[cache_key] = render_tif
 
-        # 裁剪输出：GeoTIFF 直接到最终文件，其他先到临时 tif
         if fmt == "GeoTIFF":
             clip_output = output
         else:
@@ -343,7 +338,6 @@ class OnlineMapClipper:
             self._cleanup_temp(temp_mask_path, clip_output)
             raise e
 
-        # 格式转换
         if fmt == "PNG":
             cancel = update_progress(80, "Converting to PNG...")
             if cancel:
@@ -380,7 +374,6 @@ class OnlineMapClipper:
             if clip_output != output:
                 self._cleanup_temp(clip_output)
 
-        # 清理掩膜临时文件
         self._cleanup_temp(temp_mask_path)
 
         cancel = update_progress(90, "Loading layer...")
@@ -396,11 +389,19 @@ class OnlineMapClipper:
         QMessageBox.information(self.dlg, self.translate("Success"),
                                 self.translate("Clip completed successfully!"))
 
-    def _resolution_from_zoom(self, zoom, lat_center, tile_size=256):
-        circum = 40075016.68557849
-        res = circum / (tile_size * (2 ** zoom))
-        res *= math.cos(math.radians(lat_center))
-        return res
+    def _resolution_from_zoom(self, zoom, lat_center, tile_size=256, crs=None):
+        """
+        根据缩放级别计算每个像素所代表的地图单位。
+        如果 crs 是地理坐标系（度），返回每像素度数；
+        否则返回每像素米数（基于 Web Mercator 投影）。
+        """
+        if crs and crs.isGeographic():
+            return 360.0 / (tile_size * (2 ** zoom))
+        else:
+            circum = 40075016.68557849
+            res = circum / (tile_size * (2 ** zoom))
+            res *= math.cos(math.radians(lat_center))
+            return res
 
     def _qimage_to_geotiff(self, qimage, extent, crs, output_path):
         img = qimage.convertToFormat(QImage.Format_RGBA8888).copy()
@@ -414,22 +415,28 @@ class OnlineMapClipper:
         geotrans = [extent.xMinimum(), extent.width()/width, 0,
                     extent.yMaximum(), 0, -extent.height()/height]
         ds.SetGeoTransform(geotrans)
+
+        # 使用 authid 代替 toWkt() 以避免 GDAL 解析错误
         srs = osr.SpatialReference()
-        srs.ImportFromWkt(crs.toWkt())
+        authid = crs.authid()
+        if authid:
+            srs.SetFromUserInput(authid)
+        else:
+            # 回退到 WKT，但清理换行符
+            wkt = crs.toWkt().replace('\n', ' ').strip()
+            srs.ImportFromWkt(wkt)
         ds.SetProjection(srs.ExportToWkt())
+
         for b in range(4):
             ds.GetRasterBand(b+1).WriteArray(arr[:,:,b])
         ds.FlushCache()
         ds = None
 
     def _convert_raster(self, src, dst, fmt, quality=90):
-        """Convert raster to PNG or JPEG using GDAL."""
         src_ds = gdal.Open(src)
         if not src_ds:
             raise Exception("Cannot open source for conversion")
-
         if fmt == "JPEG":
-            # 直接转换为 JPEG（去除 Alpha 通道）
             gdal.Translate(dst, src_ds, format='JPEG',
                            outputType=gdal.GDT_Byte,
                            creationOptions=[f'QUALITY={quality}'])
@@ -438,7 +445,6 @@ class OnlineMapClipper:
                            outputType=gdal.GDT_Byte)
         else:
             raise ValueError(f"Unsupported conversion format: {fmt}")
-
         src_ds = None
 
     def _cleanup_temp(self, *paths):
